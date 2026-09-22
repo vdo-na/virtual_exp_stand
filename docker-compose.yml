@@ -1,0 +1,162 @@
+services:
+  # ==========================================
+  # Балансировщик нагрузки (Traefik v3)
+  # ==========================================
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik_lb
+    restart: always
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"     # Дашборд Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+  # ==========================================
+  # 1. База данных (PostgreSQL)
+  # ==========================================
+  db:
+    image: postgres:16-alpine
+    container_name: shlink_db
+    restart: always
+    environment:
+      POSTGRES_DB: shlink
+      POSTGRES_USER: shlink
+      POSTGRES_PASSWORD: shlink_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shlink -d shlink"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================
+  # 2. Серверная часть: Экземпляр 1
+  # ==========================================
+  backend1:
+    image: shlinkio/shlink:stable
+    container_name: shlink_backend_1
+    restart: always
+    environment:
+      DEFAULT_DOMAIN: localhost
+      IS_HTTPS_ENABLED: 'false'
+      DB_DRIVER: postgres
+      DB_HOST: db
+      DB_NAME: shlink
+      DB_USER: shlink
+      DB_PASSWORD: shlink_password
+      INITIAL_API_KEY: 00000000-0000-0000-0000-000000000000
+    ports:
+      - "9081:8080"
+    networks:
+      - app_net
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      # Роутер перехватывает все запросы к API с наивысшим приоритетом
+      - "traefik.http.routers.shlink_api.rule=PathPrefix(`/rest`) || Host(`api.localhost`)"
+      - "traefik.http.routers.shlink_api.entrypoints=web"
+      - "traefik.http.routers.shlink_api.priority=100"
+      - "traefik.http.routers.shlink_api.service=shlink_backend"
+      # Сервис балансировки
+      - "traefik.http.services.shlink_backend.loadbalancer.server.port=8080"
+
+  # ==========================================
+  # 2. Серверная часть: Экземпляр 2
+  # ==========================================
+  backend2:
+    image: shlinkio/shlink:stable
+    container_name: shlink_backend_2
+    restart: always
+    environment:
+      DEFAULT_DOMAIN: localhost
+      IS_HTTPS_ENABLED: 'false'
+      DB_DRIVER: postgres
+      DB_HOST: db
+      DB_NAME: shlink
+      DB_USER: shlink
+      DB_PASSWORD: shlink_password
+      INITIAL_API_KEY: 00000000-0000-0000-0000-000000000000
+    ports:
+      - "9082:8080"
+    networks:
+      - app_net
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      # ВАЖНО: Только добавление в тот же сервис балансировки, без дублирования роутера
+      - "traefik.http.services.shlink_backend.loadbalancer.server.port=8080"
+
+  # ==========================================
+  # 3. Клиентское приложение (Фронтенд)
+  # ==========================================
+  frontend:
+    image: shlinkio/shlink-web-client:stable
+    container_name: shlink_frontend
+    restart: always
+    environment:
+      SHLINK_SERVER_NAME: "Shlink Cluster"
+      SHLINK_SERVER_URL: "http://localhost"
+      SHLINK_SERVER_API_KEY: "00000000-0000-0000-0000-000000000000"
+    ports:
+      - "9083:8080"
+    networks:
+      - app_net
+    depends_on:
+      - backend1
+      - backend2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    labels:
+      - "traefik.enable=true"
+      # Отдает всё остальное, кроме /rest
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=10"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+
+volumes:
+  db_data:
+
+networks:
+  app_net:
+    driver: bridge
