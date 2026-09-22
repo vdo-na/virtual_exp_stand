@@ -60,7 +60,7 @@ services:
     container_name: shlink_backend_1
     restart: always
     environment:
-      DEFAULT_DOMAIN: localhost
+      DEFAULT_DOMAIN: api.localhost
       IS_HTTPS_ENABLED: 'false'
       DB_DRIVER: postgres
       DB_HOST: db
@@ -83,7 +83,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Роутер перехватывает все запросы к API с наивысшим приоритетом
-      - "traefik.http.routers.shlink_api.rule=PathPrefix(`/rest`) || Host(`api.localhost`)"
+      - "traefik.http.routers.shlink_api.rule=Host(`api.localhost`)"
       - "traefik.http.routers.shlink_api.entrypoints=web"
       - "traefik.http.routers.shlink_api.priority=100"
       - "traefik.http.routers.shlink_api.service=shlink_backend"
@@ -98,7 +98,7 @@ services:
     container_name: shlink_backend_2
     restart: always
     environment:
-      DEFAULT_DOMAIN: localhost
+      DEFAULT_DOMAIN: api.localhost
       IS_HTTPS_ENABLED: 'false'
       DB_DRIVER: postgres
       DB_HOST: db
@@ -149,7 +149,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Отдает всё остальное, кроме /rest
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.routers.frontend.priority=10"
       - "traefik.http.services.frontend.loadbalancer.server.port=8080"
