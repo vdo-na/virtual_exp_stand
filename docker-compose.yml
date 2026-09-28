@@ -1,7 +1,4 @@
 services:
-  # ==========================================
-  # Балансировщик нагрузки (Traefik v3)
-  # ==========================================
   traefik:
     image: traefik:v3.1
     container_name: traefik_lb
@@ -13,7 +10,7 @@ services:
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
-      - "8080:8080"     # Дашборд Traefik
+      - "8080:8080"   
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -24,9 +21,6 @@ services:
           cpus: '0.5'
           memory: 128M
 
-  # ==========================================
-  # 1. База данных (PostgreSQL)
-  # ==========================================
   db:
     image: postgres:16-alpine
     container_name: shlink_db
@@ -52,9 +46,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # ==========================================
-  # 2. Серверная часть: Экземпляр 1
-  # ==========================================
   backend1:
     image: shlinkio/shlink:stable
     container_name: shlink_backend_1
@@ -82,17 +73,12 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
-      # Роутер перехватывает все запросы к API с наивысшим приоритетом
       - "traefik.http.routers.shlink_api.rule=Host(`api.localhost`)"
       - "traefik.http.routers.shlink_api.entrypoints=web"
       - "traefik.http.routers.shlink_api.priority=100"
       - "traefik.http.routers.shlink_api.service=shlink_backend"
-      # Сервис балансировки
       - "traefik.http.services.shlink_backend.loadbalancer.server.port=8080"
 
-  # ==========================================
-  # 2. Серверная часть: Экземпляр 2
-  # ==========================================
   backend2:
     image: shlinkio/shlink:stable
     container_name: shlink_backend_2
@@ -120,12 +106,8 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
-      # ВАЖНО: Только добавление в тот же сервис балансировки, без дублирования роутера
       - "traefik.http.services.shlink_backend.loadbalancer.server.port=8080"
 
-  # ==========================================
-  # 3. Клиентское приложение (Фронтенд)
-  # ==========================================
   frontend:
     image: shlinkio/shlink-web-client:stable
     container_name: shlink_frontend
@@ -148,7 +130,6 @@ services:
           memory: 128M
     labels:
       - "traefik.enable=true"
-      # Отдает всё остальное, кроме /rest
       - "traefik.http.routers.frontend.rule=Host(`localhost`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.routers.frontend.priority=10"
