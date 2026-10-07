@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 1s     # Частота сбора метрик (для нагрузочного тестирования лучше 1-2 сек)
+  evaluation_interval: 1s
+
+scrape_configs:
+
+  # Бонус: Traefik тоже умеет отдавать свои внутренние метрики (RPS, статус-коды)
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik_lb:8080']
+
+  - job_name: 'telegraf'
+    static_configs:
+      - targets: ['telegraf:9273']
