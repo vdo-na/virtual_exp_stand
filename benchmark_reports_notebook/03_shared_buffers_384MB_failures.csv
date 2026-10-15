@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/rest/v3/tags/{tag}/visits [GET Tag Visits],HTTPError('404 Client Error: Not Found for url: /rest/v3/tags/{tag}/visits [GET Tag Visits]'),1,2026-10-15T15:49:39Z,2026-10-15T15:49:39Z

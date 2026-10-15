@@ -1,0 +1,115 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik_lb
+    restart: always
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+  db:
+    image: postgres:16-alpine
+    container_name: shlink_db
+    restart: always
+    environment:
+      POSTGRES_DB: shlink
+      POSTGRES_USER: shlink
+      POSTGRES_PASSWORD: shlink_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app_net
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shlink -d shlink"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    image: shlinkio/shlink:stable
+    restart: always
+    volumes:
+      - ./GeoLite2-City.mmdb:/etc/shlink/data/GeoLite2-City.mmdb:ro
+    environment:
+      DEFAULT_DOMAIN: api.localhost
+      IS_HTTPS_ENABLED: 'false'
+      DB_DRIVER: postgres
+      DB_HOST: db
+      DB_NAME: shlink
+      DB_USER: shlink
+      DB_PASSWORD: shlink_password
+      INITIAL_API_KEY: 00000000-0000-0000-0000-000000000000
+      GEOLITE_LICENSE_KEY: "local_offline_db"
+      TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    networks:
+      - app_net
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shlink_api.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.shlink_api.entrypoints=web"
+      - "traefik.http.routers.shlink_api.service=shlink_backend"
+      - "traefik.http.services.shlink_backend.loadbalancer.server.port=8080"
+
+  
+  frontend:
+    image: shlinkio/shlink-web-client:stable
+    container_name: shlink_frontend
+    restart: always
+    environment:
+      SHLINK_SERVER_NAME: "Shlink Cluster"
+      SHLINK_SERVER_URL: "http://api.localhost"
+      SHLINK_SERVER_API_KEY: "00000000-0000-0000-0000-000000000000"
+    ports:
+      - "9083:8080"
+    networks:
+      - app_net
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=10"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+
+volumes:
+  db_data:
+
+networks:
+  app_net:
+    driver: bridge
