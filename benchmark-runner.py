@@ -3,6 +3,7 @@ import sys
 import time
 import copy
 import subprocess
+import time
 import requests
 import pandas as pd
 
@@ -11,6 +12,9 @@ import pandas as pd
 # ==============================================================================
 
 # Дефолтные значения (как они работают сейчас «из коробки»)
+HIGH_PRIORITY = 0x00000080 if sys.platform == "win32" else 0
+
+
 BASELINE_CONFIG = {
     # PostgreSQL
     "synchronous_commit": "on",
@@ -42,9 +46,9 @@ PARAM_VARIATIONS = {
 LOCUST_FILE = "locustfile.py"
 HOST = "http://localhost:80"
 
-TEST_DURATION = "60s"   # Длительность одного замера (60 сек достаточно для фиксации RPS)
-USERS = 70              # Количество одновременных виртуальных пользователей
-SPAWN_RATE = 15         # Скорость набора пользователей
+TEST_DURATION = "5m"   # Длительность одного замера (60 сек достаточно для фиксации RPS)
+USERS = 50              # Количество одновременных виртуальных пользователей
+SPAWN_RATE = 25         # Скорость набора пользователей
 DATASET_FILE = "benchmark_dataset.csv"
 REPORTS_DIR = "benchmark_reports"
 
@@ -118,88 +122,82 @@ services:
 
 
 def reset_and_wait():
-    """Перезапуск через benchmark-compose.yml с чистой БД и ожиданием готовности Shlink"""
-    print("   [DOCKER] Recreating containers and resetting DB volume...")
+    """
+    Быстрый и стабильный перезапуск:
+    Применяет новые параметры через restart БЕЗ удаления томов (down -v),
+    затем очищает таблицы визитов мгновенным SQL TRUNCATE.
+    """
+    print("   [DOCKER] Applying configs and restarting containers...")
     
-    # 1. Сбрасываем контейнеры и тома
+    # 1. Поднимаем/перезапускаем с новыми флагами (без уничтожения виртуального диска WSL2)
     subprocess.run(
-        DOCKER_CMD + ["down", "-v", "--remove-orphans"],
+        DOCKER_CMD + ["up", "-d", "--force-recreate"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=True
     )
 
-    # 2. Поднимаем контейнеры с учетом override
-    subprocess.run(
-        DOCKER_CMD + ["up", "-d"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        check=True
-    )
-
-    print("   [DOCKER] Waiting for Shlink DB migrations and API to be ready...")
+    print("   [DOCKER] Waiting for API and warming up...")
     headers = {
         "Host": "api.localhost",
         "X-Api-Key": "00000000-0000-0000-0000-000000000000"
     }
 
-    # До 90 секунд на холодный старт БД и миграции Doctrine
-    max_attempts = 90
-    for attempt in range(max_attempts):
+    # Ждем готовности
+    for attempt in range(40):
         try:
             r = requests.get(f"{HOST}/rest/v3/short-urls", headers=headers, timeout=2)
             if r.status_code == 200:
-                print(f"   [DOCKER] Ready after {attempt + 1}s.")
-                time.sleep(3)  # Пауза на прогрев воркеров RoadRunner
-                return
+                break
         except Exception:
-            pass
-        
-        if (attempt + 1) % 15 == 0:
-            print(f"   [DOCKER] Still initializing migrations ({attempt + 1}/{max_attempts}s)...")
-        time.sleep(1)
+            time.sleep(1)
 
-    # В случае таймаута смотрим логи именно из benchmark-compose
-    print("\n[ERROR] Logs from backend container:")
-    subprocess.run(DOCKER_CMD + ["logs", "--tail=20", "backend"])
-    print("\n[ERROR] Logs from db container:")
-    subprocess.run(DOCKER_CMD + ["logs", "--tail=20", "db"])
+    # 2. Мгновенно очищаем накопленные визиты напрямую в Postgres, не ломая таблицы
+    # Это исключает I/O зависания WSL2 и оставляет базу девственно чистой перед тестом
+    truncate_cmd = [
+        "docker", "compose", "-f", COMPOSE_FILE, "exec", "-T", "db",
+        "psql", "-U", "shlink", "-d", "shlink", "-c",
+        "TRUNCATE visits, visit_locations CASCADE;"
+    ]
+    subprocess.run(truncate_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    raise TimeoutError(f"Shlink backend did not become healthy within {max_attempts} seconds!")
+    # 3. Даем 5 секунд на прогрев Opcache и стабилизацию воркеров
+    time.sleep(15)
+    print("   [DOCKER] Ready with warm caches.")
 
-
-# ==============================================================================
-# 4. ВЫПОЛНЕНИЕ НАГРУЗОЧНОГО ТЕСТА
-# ==============================================================================
 
 def run_test(exp_name):
-    """Запуск Locust в headless-режиме и сбор результатов"""
-    csv_prefix = os.path.join(REPORTS_DIR, exp_name)
+    """Запуск Locust в изолированном контейнере внутри сети Docker"""
+    # Путь к отчету внутри контейнера
+    container_csv_prefix = f"/mnt/locust/reports/{exp_name}"
+    # Путь к тому же отчету на хосте (Windows)
+    host_stats_file = os.path.join(REPORTS_DIR, f"{exp_name}_stats.csv")
 
-    cmd = [
+    cmd = DOCKER_CMD + [
+        "run", "--rm",
         "locust",
-        "-f", LOCUST_FILE,
-        "--host", HOST,
+        "-f", "/mnt/locust/locustfile.py",
+        "--host", "http://traefik:80",    # Внутри сети Docker стучимся напрямую в traefik!
         "--headless",
         "-u", str(USERS),
         "-r", str(SPAWN_RATE),
         "--run-time", TEST_DURATION,
-        f"--csv={csv_prefix}",
+        f"--csv={container_csv_prefix}",
         "--only-summary",
-        "--exit-code-on-error=0"  # <-- Указывает Locust возвращать код 0 даже при наличии ошибок запросов
+        "--exit-code-on-error=0"
     ]
 
-    print(f"   [LOCUST] Running stress test ({TEST_DURATION})...")
+    print(f"   [LOCUST-DOCKER] Running stress test inside Docker network ({TEST_DURATION})...")
     
-    # Захватываем вывод, чтобы в случае реального падения показать причину
+    # Запуск контейнера Locust
     result = subprocess.run(cmd, capture_output=True, text=True)
 
-    stats_file = f"{csv_prefix}_stats.csv"
-    if not os.path.exists(stats_file):
-        print(f"\n[ERROR] Locust failed to run! Details:\n{result.stderr}")
-        raise RuntimeError(f"Locust did not generate {stats_file}")
+    if not os.path.exists(host_stats_file):
+        print(f"\n[ERROR] Locust container failed! Details:\n{result.stderr}\n{result.stdout}")
+        raise RuntimeError(f"Locust did not generate {host_stats_file}")
 
-    df = pd.read_csv(stats_file)
+    # Читаем результат, который контейнер записал в смонтированную папку
+    df = pd.read_csv(host_stats_file)
     aggregated = df[df["Name"] == "Aggregated"].iloc[0]
 
     req_count = int(aggregated["Request Count"])

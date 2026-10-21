@@ -107,6 +107,18 @@ services:
       - "traefik.http.routers.frontend.priority=10"
       - "traefik.http.services.frontend.loadbalancer.server.port=8080"
 
+  locust:
+    image: locustio/locust:latest
+    container_name: benchmark_locust
+    # Не даем ему стартовать автоматически при docker compose up
+    profiles: ["tools"]
+    volumes:
+      - ./locustfile.py:/mnt/locust/locustfile.py:ro
+      - ./benchmark_reports:/mnt/locust/reports
+    networks:
+      - app_net
+    # Убираем лимиты с генератора нагрузки, чтобы он отдавал максимум
+
 volumes:
   db_data:
 
