@@ -1,0 +1,11 @@
+shlink_db  | 2026-10-23T15:11:47.522502907Z 
+shlink_db  | 2026-10-23T15:11:47.522540442Z PostgreSQL Database directory appears to contain a database; Skipping initialization
+shlink_db  | 2026-10-23T15:11:47.522544416Z 
+shlink_db  | 2026-10-23T15:11:47.593277891Z 2026-10-23 15:11:47.592 UTC [1] LOG:  starting PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+shlink_db  | 2026-10-23T15:11:47.593308869Z 2026-10-23 15:11:47.592 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+shlink_db  | 2026-10-23T15:11:47.593311973Z 2026-10-23 15:11:47.592 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+shlink_db  | 2026-10-23T15:11:47.595577864Z 2026-10-23 15:11:47.595 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+shlink_db  | 2026-10-23T15:11:47.601007229Z 2026-10-23 15:11:47.600 UTC [28] LOG:  database system was shut down at 2026-10-23 15:11:45 UTC
+shlink_db  | 2026-10-23T15:11:47.609317565Z 2026-10-23 15:11:47.609 UTC [1] LOG:  database system is ready to accept connections
+shlink_db  | 2026-10-23T15:16:47.604804084Z 2026-10-23 15:16:47.604 UTC [26] LOG:  checkpoint starting: time
+shlink_db  | 2026-10-23T15:18:12.848444020Z 2026-10-23 15:18:12.848 UTC [26] LOG:  checkpoint complete: wrote 863 buffers (1.8%); 0 WAL file(s) added, 0 removed, 0 recycled; write=85.239 s, sync=0.001 s, total=85.244 s; sync files=53, longest=0.001 s, average=0.001 s; distance=11195 kB, estimate=11195 kB; lsn=0/BF612F8, redo lsn=0/BF612C0
