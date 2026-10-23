@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 404'),1,2026-10-23T10:00:08Z,2026-10-23T10:00:08Z
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 500'),2,2026-10-23T09:59:31Z,2026-10-23T10:00:49Z
