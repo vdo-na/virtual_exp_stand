@@ -29,6 +29,20 @@ BASELINE_CONFIG = {
     "MEMORY_LIMIT": "512M"
 }
 
+BEST_CONFIG = {
+    # PostgreSQL
+    "synchronous_commit": "off",
+    "shared_buffers": "384MB",
+    "wal_buffers": "32MB",          # авто (~4MB)
+    "max_wal_size": "2GB",
+    "work_mem": "16MB",
+    "random_page_cost": "4.0",    # дефолт под HDD
+    # Shlink
+    "DISABLE_IP_TRACKING": "true",
+    "WEB_WORKER_NUM": "2",        # дефолт под 1 ядро
+    "MEMORY_LIMIT": "256M"
+}
+
 # Значения, которые нужно протестировать (ровно по 1 эксперименту на каждое значение)
 PARAM_VARIATIONS = {
     "synchronous_commit": ["off"],
@@ -64,6 +78,13 @@ def generate_experiments():
     # 0. Базовый эксперимент
     base_exp = copy.deepcopy(BASELINE_CONFIG)
     base_exp["_exp_name"] = "00_baseline"
+    base_exp["_param_changed"] = "none"
+    base_exp["_value_changed"] = "default"
+    experiments.append(base_exp)
+    
+    # 0. Базовый эксперимент
+    base_exp = copy.deepcopy(BEST_CONFIG)
+    base_exp["_exp_name"] = "99_best"
     base_exp["_param_changed"] = "none"
     base_exp["_value_changed"] = "default"
     experiments.append(base_exp)
