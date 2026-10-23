@@ -1,5 +1,6 @@
 synchronous_commit,shared_buffers,wal_buffers,max_wal_size,work_mem,random_page_cost,DISABLE_IP_TRACKING,WEB_WORKER_NUM,MEMORY_LIMIT,_exp_name,_param_changed,_value_changed,total_requests,failed_requests,fail_ratio_%,rps,median_latency_ms,avg_latency_ms,p95_latency_ms,p99_latency_ms
 on,128MB,-1,1GB,4MB,4.0,false,2,512M,00_baseline,none,default,611,0,0.0,10.45,1400.0,2816.882491652915,7500.0,7600.0
+off,384MB,32MB,2GB,16MB,4.0,true,2,256M,99_best,none,default,23148,3,0.01,77.32,580.0,589.8604744588702,1000.0,1200.0
 off,128MB,-1,1GB,4MB,4.0,false,2,512M,01_synchronous_commit_off,synchronous_commit,off,818,0,0.0,13.98,1300.0,2851.2826550118693,7400.0,7600.0
 on,256MB,-1,1GB,4MB,4.0,false,2,512M,02_shared_buffers_256MB,shared_buffers,256MB,721,0,0.0,12.31,1700.0,3114.8243632452013,7900.0,8100.0
 on,384MB,-1,1GB,4MB,4.0,false,2,512M,03_shared_buffers_384MB,shared_buffers,384MB,815,1,0.12,13.93,2000.0,2851.9484930056105,7400.0,7800.0
