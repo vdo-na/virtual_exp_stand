@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 404'),1,2026-10-23T15:52:28Z,2026-10-23T15:52:28Z

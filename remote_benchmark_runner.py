@@ -18,7 +18,7 @@ APP_URL = f"http://{REMOTE_IP}:80"
 
 USERS = 100
 SPAWN_RATE = 20
-TEST_DURATION = "120s"            # 2 минуты на тест — оптимально для прогретого сервера
+TEST_DURATION = "25m"            # 2 минуты на тест — оптимально для прогретого сервера
 RESULTS_CSV = "full_benchmark_dataset.csv"
 
 # ==============================================================================
@@ -103,8 +103,10 @@ def restart_remote_system():
             time.sleep(1)
 
     # Очистка базы данных
-    ssh_exec(f"cd {REMOTE_DIR} && docker compose exec -T db psql -U shlink -d shlink -c 'TRUNCATE visits, visit_locations CASCADE;'")
-    time.sleep(5)  # Прогрев
+    # Очищаем визиты, ссылки и теги (API-ключ в таблице api_keys НЕ трогается)
+    clean_sql = "TRUNCATE visits, visit_locations, short_urls, tags CASCADE;"
+    ssh_exec(f"cd {REMOTE_DIR} && docker compose exec -T db psql -U shlink -d shlink -c '{clean_sql}'")
+    time.sleep(60)  # Прогрев
 
 
 def get_prometheus_metrics(start_ts, end_ts):

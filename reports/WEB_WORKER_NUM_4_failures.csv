@@ -1,2 +1,4 @@
 Method,Name,Error,Occurrences,First Seen,Last Seen
-GET,/{shortCode} [Redirect Check],CatchResponseError('Status 404'),5,2026-10-23T15:03:21Z,2026-10-23T15:03:55Z
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 404'),15,2026-10-24T03:03:57Z,2026-10-24T03:27:32Z
+PATCH,/rest/v3/short-urls/{shortCode} [PATCH Update],CatchResponseError('Update failed: 500'),1,2026-10-24T03:03:45Z,2026-10-24T03:03:45Z
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 500'),2,2026-10-24T03:03:57Z,2026-10-24T03:10:13Z

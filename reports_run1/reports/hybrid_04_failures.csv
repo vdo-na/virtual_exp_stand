@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 404'),5,2026-10-23T15:49:28Z,2026-10-23T15:51:11Z
+PATCH,/rest/v3/short-urls/{shortCode} [PATCH Update],CatchResponseError('Update failed: 500'),1,2026-10-23T15:50:01Z,2026-10-23T15:50:01Z
