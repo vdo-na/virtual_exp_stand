@@ -1,0 +1,3 @@
+name,synchronous_commit,shared_buffers,wal_buffers,max_wal_size,work_mem,random_page_cost,DISABLE_IP_TRACKING,WEB_WORKER_NUM,MEMORY_LIMIT,requests,fails,rps,avg_ms,p95_ms,backend_cpu_max_%,backend_cpu_avg_%,db_cpu_max_%,db_cpu_avg_%,backend_ram_max_mb,db_ram_max_mb
+00_baseline,on,128MB,-1,1GB,4MB,4.0,false,2,512M,106656,19,71.13,1347.3,2600.0,142.66,127.03,190.43,178.07,1095.0,116.27
+99_champion_ga,on,512MB,-1,4GB,8MB,1.1,true,4,256M,102084,17,68.1,1409.7,2700.0,137.38,120.52,198.41,188.67,920.12,127.82
