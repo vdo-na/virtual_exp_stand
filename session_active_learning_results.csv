@@ -1,0 +1,8 @@
+synchronous_commit,shared_buffers,wal_buffers,max_wal_size,work_mem,random_page_cost,DISABLE_IP_TRACKING,WEB_WORKER_NUM,MEMORY_LIMIT,name,requests,fails,rps,avg_ms,p95_ms,backend_cpu_max_%,backend_cpu_avg_%,db_cpu_max_%,db_cpu_avg_%,backend_ram_max_mb,db_ram_max_mb
+on,128MB,32MB,2GB,4MB,1.1,true,4,512M,opt_loop_iter_01,51153,18,85.33,1093.2,2000.0,152.37,138.44,195.79,181.22,1447.14,182.7
+on,128MB,32MB,2GB,4MB,1.1,false,4,512M,opt_loop_iter_02,49664,5,82.86,1125.7,2000.0,151.84,136.7,195.44,179.09,1060.66,134.93
+on,128MB,32MB,1GB,4MB,1.1,true,4,512M,opt_loop_iter_03,52013,18,86.76,1075.0,1800.0,155.15,139.86,194.63,178.86,1083.24,136.51
+on,512MB,32MB,1GB,4MB,1.1,true,4,512M,opt_loop_iter_04,48964,16,81.71,1135.3,2000.0,148.63,132.77,196.4,179.53,1084.73,141.64
+on,128MB,16MB,1GB,4MB,1.1,true,4,512M,opt_loop_iter_05,50744,12,84.68,1098.8,2000.0,153.92,140.02,195.37,183.07,1077.81,127.1
+off,128MB,32MB,1GB,4MB,1.1,true,4,512M,opt_loop_iter_06,50527,4,84.34,1096.7,1500.0,155.75,137.15,195.52,179.85,1083.56,121.27
+on,128MB,32MB,4GB,4MB,1.1,true,4,512M,opt_loop_iter_07,50888,19,84.87,1090.9,1900.0,154.64,138.52,195.02,180.26,1083.03,137.19

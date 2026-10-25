@@ -1,0 +1,14 @@
+{
+    "record_rps": 86.76,
+    "configuration": {
+        "synchronous_commit": "on",
+        "shared_buffers": "128MB",
+        "wal_buffers": "32MB",
+        "max_wal_size": "1GB",
+        "work_mem": "4MB",
+        "random_page_cost": "1.1",
+        "DISABLE_IP_TRACKING": "true",
+        "WEB_WORKER_NUM": "4",
+        "MEMORY_LIMIT": "512M"
+    }
+}
