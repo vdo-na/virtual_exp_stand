@@ -1,0 +1,12 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/rest/v3/tags/stats [GET Tags Summary],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/tags/stats [GET Tags Summary]'),16,2026-10-24T18:04:05Z,2026-10-24T18:11:10Z
+GET,/rest/v3/visits/non-orphan [GET Filtered Time & Bots],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/visits/non-orphan [GET Filtered Time & Bots]'),37,2026-10-24T18:03:05Z,2026-10-24T18:11:10Z
+GET,/rest/v3/short-urls/{shortCode}/visits [GET Visits],CatchResponseError('Visits failed: 500'),45,2026-10-24T18:03:05Z,2026-10-24T18:11:09Z
+GET,/rest/v3/visits/orphan [GET Orphan Visits],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/visits/orphan [GET Orphan Visits]'),43,2026-10-24T18:03:05Z,2026-10-24T18:11:09Z
+GET,/{invalidCode} [404 Orphan Visit],CatchResponseError('Status 500'),50,2026-10-24T18:03:05Z,2026-10-24T18:11:07Z
+GET,/rest/v3/tags/{tag}/visits [GET Tag Visits],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/tags/{tag}/visits [GET Tag Visits]'),39,2026-10-24T18:03:05Z,2026-10-24T18:11:08Z
+GET,/rest/v3/tags [GET List],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/tags [GET List]'),8,2026-10-24T18:05:07Z,2026-10-24T18:10:07Z
+POST,/rest/v3/short-urls [POST Create],CatchResponseError('Create failed: 500'),27,2026-10-24T18:03:05Z,2026-10-24T18:11:10Z
+GET,/rest/v3/short-urls [GET Filtered & Sorted],HTTPError('500 Server Error: Internal Server Error for url: /rest/v3/short-urls [GET Filtered & Sorted]'),18,2026-10-24T18:03:05Z,2026-10-24T18:11:09Z
+PATCH,/rest/v3/short-urls/{shortCode} [PATCH Update],CatchResponseError('Update failed: 500'),10,2026-10-24T18:03:06Z,2026-10-24T18:11:08Z
+GET,/{shortCode} [Redirect Check],CatchResponseError('Status 500'),580,2026-10-24T18:03:05Z,2026-10-24T18:11:08Z

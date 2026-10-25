@@ -37,16 +37,16 @@ EXPERIMENTS = [
         "MEMORY_LIMIT": "512M"
     },
     {
-        "name": "99_champion_ga",
-        "synchronous_commit": "on",
-        "shared_buffers": "512MB",     # Лучший буфер из 25-мин теста
+        "name": "98_final_champion",
+        "synchronous_commit": "off",
+        "shared_buffers": "128MB",     # Лучший буфер из 25-мин теста
         "wal_buffers": "-1",
         "max_wal_size": "4GB",         # Топ по сбросу чекпоинтов
-        "work_mem": "8MB",             # Топ по сортировкам
+        "work_mem": "4MB",             # Топ по сортировкам
         "random_page_cost": "1.1",     # Топ по индексам
         "DISABLE_IP_TRACKING": "true",
-        "WEB_WORKER_NUM": "4",         # Абсолютный лидер по параллелизму
-        "MEMORY_LIMIT": "256M"         # Выбор алгоритма
+        "WEB_WORKER_NUM": "2",         # Абсолютный лидер по параллелизму
+        "MEMORY_LIMIT": "512M"         # Выбор алгоритма
     }
 ]
 
