@@ -91,6 +91,15 @@ def restart_remote_system():
     print("   [REMOTE] Recreating containers...")
     ssh_exec(f"cd {REMOTE_DIR} && docker compose up -d --force-recreate")
 
+    # МГНОВЕННЫЙ СБРОС К 2 ГБ ЭТАЛОНУ:
+    # Пересоздаем базу shlink из шаблона shlink_template за 2 секунды
+    reset_sql = """
+      SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'shlink';
+      DROP DATABASE IF EXISTS shlink;
+      CREATE DATABASE shlink WITH TEMPLATE shlink_template OWNER shlink;
+    """
+    ssh_exec(f"cd {REMOTE_DIR} && docker compose exec -T db psql -U shlink -d postgres -c \"{reset_sql}\"")
+
     headers = {"Host": "api.localhost", "X-Api-Key": "00000000-0000-0000-0000-000000000000"}
     for _ in range(40):
         try:
@@ -100,10 +109,7 @@ def restart_remote_system():
         except Exception:
             time.sleep(1)
 
-    # ПОЛНАЯ ЧЕСТНАЯ ОЧИСТКА ТАБЛИЦ (БЕЗ УДАЛЕНИЯ API КЛЮЧЕЙ)
-    clean_cmd = "TRUNCATE visits, visit_locations, short_urls, tags CASCADE;"
-    ssh_exec(f"cd {REMOTE_DIR} && docker compose exec -T db psql -U shlink -d shlink -c '{clean_cmd}'")
-    time.sleep(5)
+    time.sleep(60)  # Прогрев кэшей
 
 
 def get_prometheus_metrics(start_ts, end_ts):
